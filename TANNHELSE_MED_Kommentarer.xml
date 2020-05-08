@@ -1,0 +1,445 @@
+<!--
+
+    ::  VESTLAND FYLKESKOMMUNE 2020 - OU Innplassering av tannhelse-maskiner.
+    ::  Script for inplassering av klient i OU-struktur ut fra definerte gateway-adresser.
+    ::  Scriptet er distribuert som en "package" i SCCM og blir kjørt via task-sequence som et eget "Run Commandline"-steg som kaller denne pakken slik at scriptet starter.
+    ::  Task-Sequence-Variablen %OSDDomainOUName% blir satt av scriptet ut fra spørring mot WMI der som finner gateway-adresse, som igjen blir "oversatt" til riktig lokasjon ut fra gitt gateway.
+    ::  Disse variablene brukes videre ved domeneinmelding i task-sequence for å angi hvor maskinobjektet skal plasseres ved å sette %OSDDomainOUName% som OU i domain-join-steget.
+    :: 
+    
+    ::  Opprettelsesdato        :23.04.2020
+    ::  Forfatter               :Remi Andrè Lilleskare
+    ::  Organisasjon\Firma      :Vestland Fylkeskommune
+    ::
+    
+    ::  Changelog:
+    ::  23.04.2020 - Remi Andrè Lilleskare - Opprettet script og definert opp lokale adresser for test\ProofOfConcept. Scriptet skal ivareta uatomatisk innplassering av maskinobjekter ut fra Gateway.
+    ::  24.04.2020 - Remi Andrè Lilleskare - La til alle lokasjoner som kunne finnes fra HFK DHCP. Definerte gateway-adresser.
+    ::  24.04.2020 - Remi Andrè Lilleskare - La til linje for testing (linje#32-36 + referanse OU-plassering linje #268)
+    ::  06.05.2020 - Remi Andrè Lilleskare - Endret "SAE" til "SEL"
+    ::  06.05.2020 - Remi Andrè Lilleskare - Lagt til kommentarer og deklarasjoner for bedre oversikt og søkbarhet ift. feilsøking.
+    :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: ::
+-->
+
+<?xml version="1.0" encoding="utf-8"?>
+<UIpp Title="VLFK" Icon="vlfk.ico" Color="#818286" DialogIcons="No">
+
+<Actions>
+<!-- Innhenting av ressursinformasjon fra WMI. Benyttes ved automatisering av formfaktor. -->
+    <Action Type="DefaultValues" ValueTypes="Asset,VM,Net" ShowProgress="False">
+</Action>
+
+<!-- OU-definering for Tannhelse - Bærbar - Innplasserer maskiner i rett OU ut fra valg gjort i scriptet -->
+    <!-- OBS!!! OBS!!! ØVERSTE ENTRY ER KUN FOR TEST!! DENNE SKAL FJERNES FØR PRODSETTING OBS!!! OBS!!! -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.206\.226\.1">
+<Variable Name="Gateway">SEN</Variable>
+</Case>
+</Action>
+
+<!-- Deklarering av gateway-variabel for SØRÅS TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.105\.1">
+<Variable Name="Gateway">SOR</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for LODDEFJORD TANNKLINIKK -->
+   <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.57\.1">
+<Variable Name="Gateway">LOD</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for LAKSEVÅG TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.49\.1">
+<Variable Name="Gateway">LAK</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for SÆLEN TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.89\.1">
+<Variable Name="Gateway">SEL</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for BERGEN FENGSEL TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">  
+<Case RegEx="10\.197\.113\.1">
+<Variable Name="Gateway">BEF</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for FYLLINGSDALEN TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.3\.1">
+<Variable Name="Gateway">FYD</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for HUSNES TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.17\.1">
+<Variable Name="Gateway">HUS</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ROSENDAL TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.9\.1">
+<Variable Name="Gateway">ROS</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for LINDÅS TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.153\.1">
+<Variable Name="Gateway">LIN</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for KNARVIK TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.145\.1">
+<Variable Name="Gateway">KNA</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for HESTHAUGEN TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.129\.1">
+<Variable Name="Gateway">HES</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for FREKHAUG TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.121\.1">
+<Variable Name="Gateway">FRE</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ETNE TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.249\.1">
+<Variable Name="Gateway">ETN</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for SVEIO TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.241\.1">
+<Variable Name="Gateway">SVE</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ROLLAND TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.185\.1">
+<Variable Name="Gateway">ROL</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for MANGER TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.197\.161\.1">
+<Variable Name="Gateway">MAN</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for BREMANGER TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.217\.1">
+<Variable Name="Gateway">BRN</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for STORD TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.209\.1">
+<Variable Name="Gateway">STO</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for LOFTHUS TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.201\.1">
+<Variable Name="Gateway">LOF</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ODDA TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.193\.1">
+<Variable Name="Gateway">ODD</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for VOSS TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.185\.1">
+<Variable Name="Gateway">VOS</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for OS TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.206\.33\.1">
+<Variable Name="Gateway">OS1</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ULVIK TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.169\.1">
+<Variable Name="Gateway">ULV</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for NORHEIMSUND TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.161\.1">
+<Variable Name="Gateway">NOR</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for DALEKVAM TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.153\.1">
+<Variable Name="Gateway">DAK</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for SKUTEVIKEN TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.145\.1">
+<Variable Name="Gateway">SKU</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for ASKØY TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.121\.1">
+<Variable Name="Gateway">ASO</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for HAUKELAND TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.113\.1">
+<Variable Name="Gateway">HAU</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for NESTTUN TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.97\.1">
+<Variable Name="Gateway">NES</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for AUSTEVOLL TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.89\.1">
+<Variable Name="Gateway">AUV</Variable>
+</Case>
+</Action>
+<!-- Deklarering av gateway-variabel for TYSNES TANNKLINIKK -->
+    <Action Type="Switch" OnValue='Trim("%XIPGateway%")' DontEval="False">
+<Case RegEx="10\.196\.73\.1">
+<Variable Name="Gateway">TYN</Variable>
+</Case>
+</Action>
+
+
+
+<!-- Definerer OU-plassering ut fra Gateway-adresse definert opp fra Gateway-variabel over (Bærbare maskiner) --> 
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AGO" And "%XHWChassisType%" = "Laptop"'>OU=th-agotnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARD" And "%XHWChassisType%" = "Laptop"'>OU=th-ardal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARS" And "%XHWChassisType%" = "Laptop"'>OU=th-arstad,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASO" And "%XHWChassisType%" = "Laptop"'>OU=th-askoy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASV" And "%XHWChassisType%" = "Laptop"'>OU=th-askvoll,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUR" And "%XHWChassisType%" = "Laptop"'>OU=th-aurland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUV" And "%XHWChassisType%" = "Laptop"'>OU=th-austevoll,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BAL" And "%XHWChassisType%" = "Laptop"'>OU=th-balestrand,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BEF" And "%XHWChassisType%" = "Laptop"'>OU=th-bergenfengsel,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRN" And "%XHWChassisType%" = "Laptop"'>OU=th-bremnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRM" And "%XHWChassisType%" = "Laptop"'>OU=th-bremanger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAK" And "%XHWChassisType%" = "Laptop"'>OU=th-dalekvam,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAL" And "%XHWChassisType%" = "Laptop"'>OU=th-dale,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EID" And "%XHWChassisType%" = "Laptop"'>OU=th-eid,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIK" And "%XHWChassisType%" = "Laptop"'>OU=th-eikelandsosen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIV" And "%XHWChassisType%" = "Laptop"'>OU=th-eivindvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ETN" And "%XHWChassisType%" = "Laptop"'>OU=th-etne,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FAA" And "%XHWChassisType%" = "Laptop"'>OU=th-fana,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FLO" And "%XHWChassisType%" = "Laptop"'>OU=th-floro,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FOR" And "%XHWChassisType%" = "Laptop"'>OU=th-forde,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FRE" And "%XHWChassisType%" = "Laptop"'>OU=th-frekhaug,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FYD" And "%XHWChassisType%" = "Laptop"'>OU=th-fyllingsdalen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="GAU" And "%XHWChassisType%" = "Laptop"'>OU=th-gaupne,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HAU" And "%XHWChassisType%" = "Laptop"'>OU=th-haukeland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HES" And "%XHWChassisType%" = "Laptop"'>OU=th-hesthaugen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HOY" And "%XHWChassisType%" = "Laptop"'>OU=th-hoyanger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HUS" And "%XHWChassisType%" = "Laptop"'>OU=th-husnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HYL" And "%XHWChassisType%" = "Laptop"'>OU=th-hyllestad,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="IND" And "%XHWChassisType%" = "Laptop"'>OU=th-indre,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KJE" And "%XHWChassisType%" = "Laptop"'>OU=th-kjevekirurgiskpoliklinikk,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KNA" And "%XHWChassisType%" = "Laptop"'>OU=th-knarvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KSV" And "%XHWChassisType%" = "Laptop"'>OU=th-kompetansesenter,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LAK" And "%XHWChassisType%" = "Laptop"'>OU=th-laksevag,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LER" And "%XHWChassisType%" = "Laptop"'>OU=th-lerdal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LIN" And "%XHWChassisType%" = "Laptop"'>OU=th-lindas,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOD" And "%XHWChassisType%" = "Laptop"'>OU=th-loddefjord,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOF" And "%XHWChassisType%" = "Laptop"'>OU=th-lofthus,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAL" And "%XHWChassisType%" = "Laptop"'>OU=th-maloy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAN" And "%XHWChassisType%" = "Laptop"'>OU=th-manger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NAR" And "%XHWChassisType%" = "Laptop"'>OU=th-narkosen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NES" And "%XHWChassisType%" = "Laptop"'>OU=th-nesttun,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NOR" And "%XHWChassisType%" = "Laptop"'>OU=th-norheimsund,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ODD" And "%XHWChassisType%" = "Laptop"'>OU=th-odda,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OS1" And "%XHWChassisType%" = "Laptop"'>OU=th-os,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OST" And "%XHWChassisType%" = "Laptop"'>OU=th-osteroy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROL" And "%XHWChassisType%" = "Laptop"'>OU=th-rolland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROS" And "%XHWChassisType%" = "Laptop"'>OU=th-rosendal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAA" And "%XHWChassisType%" = "Laptop"'>OU=th-sandane,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAE" And "%XHWChassisType%" = "Laptop"'>OU=th-sande,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEL" And "%XHWChassisType%" = "Laptop"'>OU=th-selen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SKU" And "%XHWChassisType%" = "Laptop"'>OU=th-skuteviken,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOG" And "%XHWChassisType%" = "Laptop"'>OU=th-sogndal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOR" And "%XHWChassisType%" = "Laptop"'>OU=th-soras,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STO" And "%XHWChassisType%" = "Laptop"'>OU=th-stord,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STE" And "%XHWChassisType%" = "Laptop"'>OU=th-straume,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STR" And "%XHWChassisType%" = "Laptop"'>OU=th-stryn,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SVE" And "%XHWChassisType%" = "Laptop"'>OU=th-sveio,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TVB" And "%XHWChassisType%" = "Laptop"'>OU=th-tannlegevaktbergen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYE" And "%XHWChassisType%" = "Laptop"'>OU=th-tysse,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYN" And "%XHWChassisType%" = "Laptop"'>OU=th-tysnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="UPI" And "%XHWChassisType%" = "Laptop"'>OU=th-upihl,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ULV" And "%XHWChassisType%" = "Laptop"'>OU=th-ulvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VIK" And "%XHWChassisType%" = "Laptop"'>OU=th-vik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VOS" And "%XHWChassisType%" = "Laptop"'>OU=th-voss,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEN" And "%XHWChassisType%" = "Laptop"'>OU=sen-bergen,OU=sen,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+
+
+
+<!-- Definerer OU-plassering ut fra Gateway-adresse definert opp fra Gateway-variabel over (Stasjonære maskiner) -->     
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AGO" And "%XHWChassisType%" = "Desktop"'>OU=th-agotnes,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARD" And "%XHWChassisType%" = "Desktop"'>OU=th-ardal,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARS" And "%XHWChassisType%" = "Desktop"'>OU=th-arstad,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASO" And "%XHWChassisType%" = "Desktop"'>OU=th-askoy,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASV" And "%XHWChassisType%" = "Desktop"'>OU=th-askvoll,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUR" And "%XHWChassisType%" = "Desktop"'>OU=th-aurland,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUV" And "%XHWChassisType%" = "Desktop"'>OU=th-austevoll,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BAL" And "%XHWChassisType%" = "Desktop"'>OU=th-balestrand,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BEF" And "%XHWChassisType%" = "Desktop"'>OU=th-bergenfengsel,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRN" And "%XHWChassisType%" = "Desktop"'>OU=th-bremnes,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRM" And "%XHWChassisType%" = "Desktop"'>OU=th-bremanger,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAK" And "%XHWChassisType%" = "Desktop"'>OU=th-dalekvam,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAL" And "%XHWChassisType%" = "Desktop"'>OU=th-dale,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EID" And "%XHWChassisType%" = "Desktop"'>OU=th-eid,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIK" And "%XHWChassisType%" = "Desktop"'>OU=th-eikelandsosen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIV" And "%XHWChassisType%" = "Desktop"'>OU=th-eivindvik,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ETN" And "%XHWChassisType%" = "Desktop"'>OU=th-etne,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FAA" And "%XHWChassisType%" = "Desktop"'>OU=th-fana,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FLO" And "%XHWChassisType%" = "Desktop"'>OU=th-floro,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FOR" And "%XHWChassisType%" = "Desktop"'>OU=th-forde,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FRE" And "%XHWChassisType%" = "Desktop"'>OU=th-frekhaug,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FYD" And "%XHWChassisType%" = "Desktop"'>OU=th-fyllingsdalen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="GAU" And "%XHWChassisType%" = "Desktop"'>OU=th-gaupne,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HAU" And "%XHWChassisType%" = "Desktop"'>OU=th-haukeland,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HES" And "%XHWChassisType%" = "Desktop"'>OU=th-hesthaugen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HOY" And "%XHWChassisType%" = "Desktop"'>OU=th-hoyanger,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HUS" And "%XHWChassisType%" = "Desktop"'>OU=th-husnes,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HYL" And "%XHWChassisType%" = "Desktop"'>OU=th-hyllestad,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="IND" And "%XHWChassisType%" = "Desktop"'>OU=th-indre,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KJE" And "%XHWChassisType%" = "Desktop"'>OU=th-kjevekirurgiskpoliklinikk,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KNA" And "%XHWChassisType%" = "Desktop"'>OU=th-knarvik,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KSV" And "%XHWChassisType%" = "Desktop"'>OU=th-kompetansesenter,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LAK" And "%XHWChassisType%" = "Desktop"'>OU=th-laksevag,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LER" And "%XHWChassisType%" = "Desktop"'>OU=th-lerdal,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LIN" And "%XHWChassisType%" = "Desktop"'>OU=th-lindas,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOD" And "%XHWChassisType%" = "Desktop"'>OU=th-loddefjord,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOF" And "%XHWChassisType%" = "Desktop"'>OU=th-lofthus,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAL" And "%XHWChassisType%" = "Desktop"'>OU=th-maloy,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAN" And "%XHWChassisType%" = "Desktop"'>OU=th-manger,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NAR" And "%XHWChassisType%" = "Desktop"'>OU=th-narkosen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NES" And "%XHWChassisType%" = "Desktop"'>OU=th-nesttun,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NOR" And "%XHWChassisType%" = "Desktop"'>OU=th-norheimsund,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ODD" And "%XHWChassisType%" = "Desktop"'>OU=th-odda,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OS1" And "%XHWChassisType%" = "Desktop"'>OU=th-os,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OST" And "%XHWChassisType%" = "Desktop"'>OU=th-osteroy,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROL" And "%XHWChassisType%" = "Desktop"'>OU=th-rolland,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROS" And "%XHWChassisType%" = "Desktop"'>OU=th-rosendal,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAA" And "%XHWChassisType%" = "Desktop"'>OU=th-sandane,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAE" And "%XHWChassisType%" = "Desktop"'>OU=th-sande,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEL" And "%XHWChassisType%" = "Desktop"'>OU=th-selen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SKU" And "%XHWChassisType%" = "Desktop"'>OU=th-skuteviken,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOG" And "%XHWChassisType%" = "Desktop"'>OU=th-sogndal,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOR" And "%XHWChassisType%" = "Desktop"'>OU=th-soras,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STO" And "%XHWChassisType%" = "Desktop"'>OU=th-stord,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STE" And "%XHWChassisType%" = "Desktop"'>OU=th-straume,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STR" And "%XHWChassisType%" = "Desktop"'>OU=th-stryn,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SVE" And "%XHWChassisType%" = "Desktop"'>OU=th-sveio,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TVB" And "%XHWChassisType%" = "Desktop"'>OU=th-tannlegevaktbergen,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYE" And "%XHWChassisType%" = "Desktop"'>OU=th-tysse,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYN" And "%XHWChassisType%" = "Desktop"'>OU=th-tysnes,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="UPI" And "%XHWChassisType%" = "Desktop"'>OU=th-upihl,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ULV" And "%XHWChassisType%" = "Desktop"'>OU=th-ulvik,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VIK" And "%XHWChassisType%" = "Desktop"'>OU=th-vik,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VOS" And "%XHWChassisType%" = "Desktop"'>OU=th-voss,OU=th,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEN" And "%XHWChassisType%" = "Desktop"'>OU=sen-bergen,OU=sen,OU=st,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+
+
+
+<!-- Definerer OU-plassering ut fra Gateway-adresse definert opp fra Gateway-variabel over (Virtuelle maskiner) --> 
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AGO" And "%XHWChassisType%" = "virtual"'>OU=th-agotnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARD" And "%XHWChassisType%" = "Virtual"'>OU=th-ardal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ARS" And "%XHWChassisType%" = "Virtual"'>OU=th-arstad,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASO" And "%XHWChassisType%" = "Virtual"'>OU=th-askoy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ASV" And "%XHWChassisType%" = "Virtual"'>OU=th-askvoll,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUR" And "%XHWChassisType%" = "Virtual"'>OU=th-aurland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="AUV" And "%XHWChassisType%" = "Virtual"'>OU=th-austevoll,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BAL" And "%XHWChassisType%" = "Virtual"'>OU=th-balestrand,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BEF" And "%XHWChassisType%" = "Virtual"'>OU=th-bergenfengsel,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRN" And "%XHWChassisType%" = "Virtual"'>OU=th-bremnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="BRM" And "%XHWChassisType%" = "Virtual"'>OU=th-bremanger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAK" And "%XHWChassisType%" = "Virtual"'>OU=th-dalekvam,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="DAL" And "%XHWChassisType%" = "Virtual"'>OU=th-dale,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EID" And "%XHWChassisType%" = "Virtual"'>OU=th-eid,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIK" And "%XHWChassisType%" = "Virtual"'>OU=th-eikelandsosen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="EIV" And "%XHWChassisType%" = "Virtual"'>OU=th-eivindvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ETN" And "%XHWChassisType%" = "Virtual"'>OU=th-etne,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FAA" And "%XHWChassisType%" = "Virtual"'>OU=th-fana,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FLO" And "%XHWChassisType%" = "Virtual"'>OU=th-floro,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FOR" And "%XHWChassisType%" = "Virtual"'>OU=th-forde,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FRE" And "%XHWChassisType%" = "Virtual"'>OU=th-frekhaug,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="FYD" And "%XHWChassisType%" = "Virtual"'>OU=th-fyllingsdalen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="GAU" And "%XHWChassisType%" = "Virtual"'>OU=th-gaupne,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HAU" And "%XHWChassisType%" = "Virtual"'>OU=th-haukeland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HES" And "%XHWChassisType%" = "Virtual"'>OU=th-hesthaugen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HOY" And "%XHWChassisType%" = "Virtual"'>OU=th-hoyanger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HUS" And "%XHWChassisType%" = "Virtual"'>OU=th-husnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="HYL" And "%XHWChassisType%" = "Virtual"'>OU=th-hyllestad,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="IND" And "%XHWChassisType%" = "Virtual"'>OU=th-indre,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KJE" And "%XHWChassisType%" = "Virtual"'>OU=th-kjevekirurgiskpoliklinikk,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KNA" And "%XHWChassisType%" = "Virtual"'>OU=th-knarvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="KSV" And "%XHWChassisType%" = "Virtual"'>OU=th-kompetansesenter,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LAK" And "%XHWChassisType%" = "Virtual"'>OU=th-laksevag,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LER" And "%XHWChassisType%" = "Virtual"'>OU=th-lerdal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LIN" And "%XHWChassisType%" = "Virtual"'>OU=th-lindas,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOD" And "%XHWChassisType%" = "Virtual"'>OU=th-loddefjord,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="LOF" And "%XHWChassisType%" = "Virtual"'>OU=th-lofthus,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAL" And "%XHWChassisType%" = "Virtual"'>OU=th-maloy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="MAN" And "%XHWChassisType%" = "Virtual"'>OU=th-manger,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NAR" And "%XHWChassisType%" = "Virtual"'>OU=th-narkosen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NES" And "%XHWChassisType%" = "Virtual"'>OU=th-nesttun,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="NOR" And "%XHWChassisType%" = "Virtual"'>OU=th-norheimsund,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ODD" And "%XHWChassisType%" = "Virtual"'>OU=th-odda,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OS1" And "%XHWChassisType%" = "Virtual"'>OU=th-os,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="OST" And "%XHWChassisType%" = "Virtual"'>OU=th-osteroy,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROL" And "%XHWChassisType%" = "Virtual"'>OU=th-rolland,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ROS" And "%XHWChassisType%" = "Virtual"'>OU=th-rosendal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAA" And "%XHWChassisType%" = "Virtual"'>OU=th-sandane,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SAE" And "%XHWChassisType%" = "Virtual"'>OU=th-sande,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEL" And "%XHWChassisType%" = "Virtual"'>OU=th-selen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SKU" And "%XHWChassisType%" = "Virtual"'>OU=th-skuteviken,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOG" And "%XHWChassisType%" = "Virtual"'>OU=th-sogndal,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SOR" And "%XHWChassisType%" = "Virtual"'>OU=th-soras,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STO" And "%XHWChassisType%" = "Virtual"'>OU=th-stord,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STE" And "%XHWChassisType%" = "Virtual"'>OU=th-straume,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="STR" And "%XHWChassisType%" = "Virtual"'>OU=th-stryn,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SVE" And "%XHWChassisType%" = "Virtual"'>OU=th-sveio,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TVB" And "%XHWChassisType%" = "Virtual"'>OU=th-tannlegevaktbergen,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYE" And "%XHWChassisType%" = "Virtual"'>OU=th-tysse,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="TYN" And "%XHWChassisType%" = "Virtual"'>OU=th-tysnes,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="UPI" And "%XHWChassisType%" = "Virtual"'>OU=th-upihl,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="ULV" And "%XHWChassisType%" = "Virtual"'>OU=th-ulvik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VIK" And "%XHWChassisType%" = "Virtual"'>OU=th-vik,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="VOS" And "%XHWChassisType%" = "Virtual"'>OU=th-voss,OU=th,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+     <Action Type="TSVar" Name="OSDDomainOUName" Condition='"%Gateway%" ="SEN" And "%XHWChassisType%" = "Virtual"'>OU=sen-bergen,OU=sen,OU=bb,OU=intern,OU=klient,OU=lokalt,DC=ad,DC=vlfk,DC=no</Action>
+
+<!-- Blokken under er deaktivert siden task-sequencen kjører som system i OS-setting (desktop0) og vi derfor måtte brukt ServiceUI-løsning for å presentere for bruker.
+Siden dette ikke er nødvendig å presentere i det hele tatt har "vi" automatisert denne prosessen helt, og hoppet over validering\akseptanse-skjermen -->
+<!-- Definerer innhold på oppsummeringsskjerm\bekreftelsesskjerm [Siste skjerm - Oppsummering]
+    <Action Type="Info" Name="FinalInfo" Title="Tannklinikk: %Gateway%" ShowCancel="True" ShowBack="True">
+      <![CDATA[OU: <b>%OSDDomainOUName%</b><br>Maskintype: <b>%XHWChassisType%</b>]]>
+</Action>-->
+
+<!-- Skriver logger til c:\temp og filer til register som under domainjoin-steget skal brukes til å plassere maskin inn i riktig OU automatisk-->
+<Action Type="SaveItems" Items="UILog,TSVariables:Vars.txt,SMSTSLog" Path="c:\temp\" />
+<Action Type="RegWrite" Hive="HKLM" Key="Software\MEMTeam" Value="OU-Plassering" ValueType="REG_SZ">%OSDDomainOUName%</Action>
+</Actions>
+</UIpp>
